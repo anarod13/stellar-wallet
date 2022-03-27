@@ -1,13 +1,14 @@
 <script src="https://unpkg.com/boxicons@2.1.2/dist/boxicons.js">
-	import 'boxicons'
+	import 'boxicons';
 	import StellarSdk from 'stellar-sdk';
 	import { writable } from 'svelte/store';
-	import  {createAccount} from '../stellarMethods/createAccount'
+	import Balances from './Elements/Balances.svelte';
+	import { createAccount } from '../stellarMethods/createAccount';
 	let secretKey;
 	let publicKey;
 	let account;
-
-
+	let existingKeyPair = false;
+	let accountInCreation;
 
 	function createKeyPair() {
 		const pair = StellarSdk.Keypair.random();
@@ -15,45 +16,64 @@
 		secretKey = pair.secret();
 		publicKey = writable(pair.publicKey());
 	}
-	createKeyPair();
+	$: if (!existingKeyPair) {
+		createKeyPair();
+	}
 	/**
 	 * @param {string} key
 	 */
 	function copyKey(key) {
 		navigator.clipboard.writeText(key);
 	}
-	async function  handleCreateAccount(){
-
-		account = await createAccount($publicKey)
+	function handleCreateAccount() {
+		accountInCreation = true;
+		account = createAccount($publicKey);
 	}
-
 </script>
 
 <main>
 	<h2>These are your new keys to your Stellar Account:</h2>
 	<div class="keyPair">
-		<p>Public key:  </p>
+		<p>Public key:</p>
 		<p>{$publicKey}</p>
-		<box-icon name='copy' type='solid' color='rgba(0,0,0,0.49)' on:click={() => {
-			copyKey($publicKey);
-		}}></box-icon>
-
+		<box-icon
+			name="copy"
+			type="solid"
+			color="rgba(0,0,0,0.49)"
+			on:click={() => {
+				copyKey($publicKey);
+			}}
+		/>
 	</div>
 	<div class="keyPair">
-		<p>Secret key:  </p>
+		<p>Secret key:</p>
 		<p>{secretKey}</p>
-		<box-icon name='copy' type='solid' color='rgba(0,0,0,0.49)' on:click={() => {
+		<box-icon
+			name="copy"
+			type="solid"
+			color="rgba(0,0,0,0.49)"
+			on:click={() => {
 				copyKey(secretKey);
-			}}></box-icon>
-
+			}}
+		/>
 	</div>
-	<p>Great! Now that you have a KeyPair you'll need to fund your account with at least 1 XLM to create it </p>
+	<p>
+		Great! Now that you have a KeyPair you'll need to fund your account with at least 1 XLM to
+		create it
+	</p>
 	<p>You can test fund it with Stellar's friendBot</p>
 
-	{#if !account}
-	<button on:click|once={handleCreateAccount}>Create Account</button>
+	{#if !accountInCreation}
+		<button on:click={handleCreateAccount}>Create Account</button>
 	{:else}
-		<div>{JSON.stringify(account)}</div>
+		{#await account}
+			<p>Funding account with Stellar FriendbotBuilder...</p>
+		{:then dataAccount}
+			<Balances balances={dataAccount.balances} />
+		{:catch e}
+			<p>Something went wrong. Please try again</p>
+			<button on:click={handleCreateAccount}>Create Account</button>
+		{/await}
 	{/if}
 </main>
 
