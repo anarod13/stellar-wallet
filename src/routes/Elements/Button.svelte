@@ -1,17 +1,17 @@
 <script>
-    export let href = '#';
-    export let direction;
+	export let onclick = () => {};
+	export let textButton;
 </script>
 
-<a class="button" href={href}>{direction}</a>
+<button on:click={onclick}>{textButton}</button>
 
 <style>
-        .button {
-        width:10%;
-        background-color: orangered;
-        padding: 10px;
-        color:bisque;
-        border-radius: 8px;
-        margin:5px
-    }
+	button {
+		background-color: #04aa6d;
+		padding: 10px;
+		color: bisque;
+		border-radius: 8px;
+		margin: 5px;
+        cursor: pointer;
+	}
 </style>
